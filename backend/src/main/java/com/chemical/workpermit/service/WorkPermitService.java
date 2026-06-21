@@ -254,6 +254,8 @@ public class WorkPermitService {
         WorkPermit permit = getPermitById(id);
         validateStatus(permit, PermitStatus.READY_TO_START, PermitStatus.RESUME_CONFIRMED);
 
+        PermitStatus fromStatus = permit.getStatus();
+
         if (checkGasExpired(permit)) {
             throw new BusinessException("GAS_EXPIRED", "气体检测已过期，无法开工");
         }
@@ -270,7 +272,7 @@ public class WorkPermitService {
         }
         permit = workPermitRepository.save(permit);
 
-        recordApproval(permit, ApprovalAction.START_WORK, dto, permit.getStatus(), PermitStatus.IN_PROGRESS);
+        recordApproval(permit, ApprovalAction.START_WORK, dto, fromStatus, PermitStatus.IN_PROGRESS);
 
         log.info("作业开始: id={}", id);
         return convertToDTO(permit);
@@ -386,13 +388,15 @@ public class WorkPermitService {
             throw new BusinessException("INVALID_STATUS", "作业票状态不允许关闭");
         }
 
+        PermitStatus fromStatus = permit.getStatus();
+
         sendEvent(permit, PermitEvent.CLOSE);
 
         permit.setStatus(PermitStatus.CLOSED);
         permit.setActualEndTime(LocalDateTime.now());
         permit = workPermitRepository.save(permit);
 
-        recordApproval(permit, ApprovalAction.CLOSE, dto, permit.getStatus(), PermitStatus.CLOSED);
+        recordApproval(permit, ApprovalAction.CLOSE, dto, fromStatus, PermitStatus.CLOSED);
 
         log.info("作业票关闭成功: id={}", id);
         return convertToDTO(permit);
@@ -410,12 +414,14 @@ public class WorkPermitService {
             throw new BusinessException("PERSONNEL_INSIDE", "还有人员未撤出，不能取消作业票");
         }
 
+        PermitStatus fromStatus = permit.getStatus();
+
         sendEvent(permit, PermitEvent.CANCEL);
 
         permit.setStatus(PermitStatus.CANCELLED);
         permit = workPermitRepository.save(permit);
 
-        recordApproval(permit, ApprovalAction.CANCEL, dto, permit.getStatus(), PermitStatus.CANCELLED);
+        recordApproval(permit, ApprovalAction.CANCEL, dto, fromStatus, PermitStatus.CANCELLED);
 
         log.info("作业票取消成功: id={}", id);
         return convertToDTO(permit);

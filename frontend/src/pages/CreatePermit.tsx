@@ -12,23 +12,47 @@ import {
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import { workPermitApi } from '../services/api';
 import type { CreateWorkPermitRequest } from '../types';
 
 const { RangePicker } = DatePicker;
 const { TextArea } = Input;
 
+interface CreateFormValues {
+  equipment: string;
+  workContent: string;
+  applicantId: string;
+  applicantName: string;
+  guardianId?: string;
+  guardianName?: string;
+  planTimeRange?: [Dayjs, Dayjs];
+}
+
 function CreatePermit() {
   const navigate = useNavigate();
   const { message } = App.useApp();
-  const [form] = Form.useForm<CreateWorkPermitRequest>();
+  const [form] = Form.useForm<CreateFormValues>();
   const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values: CreateWorkPermitRequest) => {
+  const onFinish = async (values: CreateFormValues) => {
     try {
       setLoading(true);
-      const result = await workPermitApi.createPermit(values);
+      const requestData: CreateWorkPermitRequest = {
+        equipment: values.equipment,
+        workContent: values.workContent,
+        applicantId: values.applicantId,
+        applicantName: values.applicantName,
+        guardianId: values.guardianId,
+        guardianName: values.guardianName,
+        planStartTime: values.planTimeRange
+          ? values.planTimeRange[0].format('YYYY-MM-DD HH:mm:ss')
+          : '',
+        planEndTime: values.planTimeRange
+          ? values.planTimeRange[1].format('YYYY-MM-DD HH:mm:ss')
+          : '',
+      };
+      const result = await workPermitApi.createPermit(requestData);
       message.success('作业票创建成功');
       navigate(`/permit/${result.id}`);
     } catch (error) {
@@ -54,8 +78,7 @@ function CreatePermit() {
         initialValues={{
           applicantId: 'APP001',
           applicantName: '张三',
-          planStartTime: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-          planEndTime: dayjs().add(8, 'hour').format('YYYY-MM-DD HH:mm:ss'),
+          planTimeRange: [dayjs(), dayjs().add(8, 'hour')],
         }}
       >
         <Row gutter={24}>
@@ -70,29 +93,9 @@ function CreatePermit() {
           </Col>
           <Col span={12}>
             <Form.Item
-              name={['planStartTime', 'planEndTime']}
+              name="planTimeRange"
               label="计划作业时间"
               rules={[{ required: true, message: '请选择作业时间' }]}
-              getValueFromEvent={(dates) => {
-                if (dates && dates.length === 2) {
-                  return {
-                    planStartTime: dates[0].format('YYYY-MM-DD HH:mm:ss'),
-                    planEndTime: dates[1].format('YYYY-MM-DD HH:mm:ss'),
-                  };
-                }
-                return null;
-              }}
-              getValueProps={(value) => {
-                if (value && value.planStartTime && value.planEndTime) {
-                  return {
-                    value: [
-                      dayjs(value.planStartTime),
-                      dayjs(value.planEndTime),
-                    ],
-                  };
-                }
-                return { value: undefined };
-              }}
             >
               <RangePicker
                 showTime={{ format: 'HH:mm' }}

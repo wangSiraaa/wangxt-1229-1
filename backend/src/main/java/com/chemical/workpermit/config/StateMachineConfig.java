@@ -2,9 +2,11 @@ package com.chemical.workpermit.config;
 
 import com.chemical.workpermit.enums.PermitEvent;
 import com.chemical.workpermit.enums.PermitStatus;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.statemachine.config.EnableStateMachine;
-import org.springframework.statemachine.config.StateMachineConfigurerAdapter;
+import org.springframework.statemachine.action.Action;
+import org.springframework.statemachine.config.EnableStateMachineFactory;
+import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter;
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer;
 import org.springframework.statemachine.config.builders.StateMachineTransitionConfigurer;
@@ -12,8 +14,8 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 import java.util.EnumSet;
 
 @Configuration
-@EnableStateMachine(name = "permitStateMachine")
-public class StateMachineConfig extends StateMachineConfigurerAdapter<PermitStatus, PermitEvent> {
+@EnableStateMachineFactory(name = "permitStateMachine")
+public class StateMachineConfig extends EnumStateMachineConfigurerAdapter<PermitStatus, PermitEvent> {
 
     @Override
     public void configure(StateMachineConfigurationConfigurer<PermitStatus, PermitEvent> config) throws Exception {
@@ -61,9 +63,6 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PermitStat
                 .source(PermitStatus.IN_PROGRESS).target(PermitStatus.IN_PROGRESS).event(PermitEvent.RECORD_EXIT)
                 .and()
             .withExternal()
-                .source(PermitStatus.IN_PROGRESS).target(PermitStatus.PENDING_RESUME).event(PermitEvent.RECORD_EXIT)
-                .and()
-            .withExternal()
                 .source(PermitStatus.PENDING_RESUME).target(PermitStatus.RESUME_CONFIRMED).event(PermitEvent.CONFIRM_RESUME)
                 .and()
             .withExternal()
@@ -83,5 +82,11 @@ public class StateMachineConfig extends StateMachineConfigurerAdapter<PermitStat
                 .and()
             .withExternal()
                 .source(PermitStatus.PENDING_APPROVAL).target(PermitStatus.CANCELLED).event(PermitEvent.CANCEL);
+    }
+
+    @Bean
+    public Action<PermitStatus, PermitEvent> errorAction() {
+        return context -> {
+        };
     }
 }
