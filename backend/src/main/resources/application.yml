@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: work-permit
+  datasource:
+    url: jdbc:postgresql://localhost:5432/work_permit
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8080
+
+logging:
+  level:
+    com.chemical.workpermit: DEBUG
+    org.springframework.statemachine: DEBUG
