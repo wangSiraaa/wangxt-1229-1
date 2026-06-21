@@ -193,10 +193,32 @@ function PermitDetail() {
   };
 
   const handleClose = () => {
-    if (detail?.insidePersonnelCount > 0) {
-      message.error(
-        `还有 ${detail.insidePersonnelCount} 名人员未签出，不能关闭作业票`
-      );
+    if (detail?.insidePersonnelCount > 0 && detail.insidePersonnelNames?.length > 0) {
+      Modal.confirm({
+        title: '无法关闭作业票',
+        icon: <ExclamationCircleOutlined style={{ color: '#ff4d4f' }} />,
+        content: (
+          <div>
+            <p style={{ marginBottom: 8 }}>
+              还有 <strong style={{ color: '#ff4d4f' }}>{detail.insidePersonnelCount}</strong> 名人员未签出，不能关闭作业票：
+            </p>
+            <div style={{
+              padding: '12px 16px',
+              background: '#fff2f0',
+              borderRadius: 6,
+              border: '1px solid #ffccc7',
+            }}>
+              {detail.insidePersonnelNames.map((name, index) => (
+                <Tag key={index} color="red" style={{ marginBottom: 4 }}>
+                  {name}
+                </Tag>
+              ))}
+            </div>
+          </div>
+        ),
+        okText: '我知道了',
+        cancelButtonProps: { style: { display: 'none' } },
+      });
       return;
     }
     showActionModal(
@@ -377,10 +399,16 @@ function PermitDetail() {
       alerts.push(
         <Alert
           key="personnel"
-          type="info"
+          type="warning"
           showIcon
+          icon={<ExclamationCircleOutlined />}
           message={`当前受限空间内有 ${detail.insidePersonnelCount} 人`}
-          description="关闭作业票前必须确保所有人员已撤出"
+          description={
+            <div>
+              <div>未签出人员：{detail.insidePersonnelNames?.join('、') || '暂无'}</div>
+              <div style={{ marginTop: 4 }}>关闭作业票前必须确保所有人员已撤出</div>
+            </div>
+          }
           style={{ marginBottom: 16 }}
         />
       );

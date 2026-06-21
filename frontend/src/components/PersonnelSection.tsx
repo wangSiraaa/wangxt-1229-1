@@ -196,8 +196,13 @@ function PersonnelSection({
         <Alert
           type="warning"
           showIcon
-          message={`当前受限空间内有 ${detail.insidePersonnelCount} 人`}
-          description="关闭作业票前必须确保所有人员已撤出"
+          message={`当前受限空间内有 ${detail.insidePersonnelCount} 人未签出`}
+          description={
+            <div>
+              <div>未签出人员：{detail.insidePersonnelNames?.join('、') || '暂无'}</div>
+              <div style={{ marginTop: 4 }}>关闭作业票前必须确保所有人员已安全撤出</div>
+            </div>
+          }
           style={{ marginBottom: 16 }}
         />
       )}

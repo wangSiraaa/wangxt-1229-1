@@ -79,6 +79,7 @@ public class WorkPermitService {
         detail.setAllIsolationConfirmed(checkAllIsolationConfirmed(id));
         detail.setAllPersonnelExited(checkAllPersonnelExited(id));
         detail.setInsidePersonnelCount(personnelEntryRepository.countByPermitIdAndIsInsideTrue(id));
+        detail.setInsidePersonnelNames(getInsidePersonnelNames(id));
 
         return detail;
     }
@@ -378,8 +379,9 @@ public class WorkPermitService {
         WorkPermit permit = getPermitById(id);
 
         if (!checkAllPersonnelExited(id)) {
-            long insideCount = personnelEntryRepository.countByPermitIdAndIsInsideTrue(id);
-            throw new BusinessException("PERSONNEL_INSIDE", "还有 " + insideCount + " 名人员未签出，不能关闭作业票");
+            List<String> insideNames = getInsidePersonnelNames(id);
+            throw new BusinessException("PERSONNEL_INSIDE",
+                "还有 " + insideNames.size() + " 名人员未签出：" + String.join("、", insideNames) + "，不能关闭作业票");
         }
 
         if (permit.getStatus() != PermitStatus.IN_PROGRESS &&
@@ -455,6 +457,12 @@ public class WorkPermitService {
 
     private boolean checkAllPersonnelExited(UUID permitId) {
         return personnelEntryRepository.countByPermitIdAndIsInsideTrue(permitId) == 0;
+    }
+
+    private List<String> getInsidePersonnelNames(UUID permitId) {
+        return personnelEntryRepository.findByPermitIdAndIsInsideTrue(permitId).stream()
+                .map(PersonnelEntry::getPersonnelName)
+                .collect(Collectors.toList());
     }
 
     private void sendEvent(WorkPermit permit, PermitEvent event) {

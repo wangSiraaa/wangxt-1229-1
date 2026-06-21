@@ -108,6 +108,7 @@ export interface WorkPermitDetail {
   allIsolationConfirmed: boolean;
   allPersonnelExited: boolean;
   insidePersonnelCount: number;
+  insidePersonnelNames: string[];
 }
 
 export interface PageResult<T> {

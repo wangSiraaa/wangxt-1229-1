@@ -15,4 +15,5 @@ public class WorkPermitDetailDTO {
     private boolean allIsolationConfirmed;
     private boolean allPersonnelExited;
     private long insidePersonnelCount;
+    private List<String> insidePersonnelNames;
 }
